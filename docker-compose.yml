@@ -8,14 +8,5 @@ services:
       POSTGRES_DB: ncri
     ports:
       - "5432:5432"
-  fastapi:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - postgres
-    ports:
-      - "8000:8000"
-
 volumes:
   postgres_data:
