@@ -16,12 +16,13 @@ analytics = APIRouter(
 )
 
 
-@analytics.get("/key_user_stats")
+@analytics.get("/twitter/users/stats")
 async def get_key_user_stats(
     page: int = Query(default=1, ge=1, description="Page number"),
     page_size: int = Query(default=10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
 ):
+    """Returns all users and the count of their tweets in descending order."""
     # Calculate offset based on page number and page size
     offset = (page - 1) * page_size
 
@@ -44,7 +45,7 @@ async def get_key_user_stats(
     return {"total_count": total_count, "items": result}
 
 
-@analytics.get("/tweet_stats_over_time")
+@analytics.get("/twitter/stats")
 async def get_specific_tweet_stats(
     start_date: Optional[datetime] = Query(default=None, description="Start date"),
     end_date: Optional[datetime] = Query(default=None, description="End date"),
@@ -53,6 +54,12 @@ async def get_specific_tweet_stats(
     criteria: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
+    """
+    Retrieve twitter data based on set time interval.
+    Default time interval is set to the past week.
+    One may also pass in the criteria they want to search on.
+    Criteria may be `threatening`, `hateful` or `None`
+    """
     # Default end date is today
     if not end_date:
         end_date = datetime.now().date()
@@ -61,6 +68,7 @@ async def get_specific_tweet_stats(
         start_date = end_date - timedelta(days=7)
 
     # NOTE: these filters could be moved out.
+    # They're used in data_filtering as well.
     threatening_filter = or_(
         Tweet.threat_level == "Medium",
         Tweet.threat_level == "High",

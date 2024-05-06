@@ -27,6 +27,11 @@ async def get_filtered_data(
     page_size: int = Query(default=10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
 ):
+    """
+    Retrieve filtered data based on day/month/year and also content_type.
+    User may pass in the following content_type for retrieval: `threatening`, `non-threatening`, `neutral`, or `hateful`.
+    User MUST pass in a content_type.
+    """
     query = db.query(Tweet)
     # Apply filters based on provided parameters
     if data_filtering_params.day:
