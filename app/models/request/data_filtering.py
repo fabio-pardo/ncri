@@ -1,18 +1,12 @@
-from asyncpg.pool import Pool
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from typing import Optional
 
-from app.main import get_db_pool_dependency
-
-data_filtering = APIRouter(
-    prefix="/data_filtering", responses={404: {"description": "Not found"}}
-)
+from fastapi import HTTPException
+from pydantic import BaseModel
 
 content_types = {"all", "threatening", "non-threatening, hateful, neutral"}
 
 
-class DataFilter(BaseModel):
+class DataFilteringParams(BaseModel):
     day: int
     week: int
     month: int
@@ -28,8 +22,3 @@ class DataFilter(BaseModel):
     @property
     def content_type_validated(self):
         return self.validate_content_type(self.content_type)
-
-
-@data_filtering.get("/")
-async def root(db_pool: Pool = Depends(get_db_pool_dependency)):
-    pass
