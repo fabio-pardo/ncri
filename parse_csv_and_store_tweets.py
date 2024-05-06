@@ -1,5 +1,7 @@
 import csv
 
+from sqlalchemy.dialects.postgresql import insert
+
 from app.db.database import SessionLocal
 from app.db.models.tweets import Tweet
 
@@ -44,11 +46,24 @@ data_dict = {
     "zip",
 }
 
+nullable_boolean_keys = ["retweeted", "len_filter"]
 tweets = read_csv(file_path, data_dict)
-session = SessionLocal()
 
-session.bulk_insert_mappings(Tweet, tweets)
+# Hacky way to get around None valued string to be bool or Nonetype.
+# Could be better I know, but in the purpose of saving time.
+for tweet in tweets:
+    for key in nullable_boolean_keys:
+        value = tweet[key]
+        if value == "False":
+            tweet[key] = False
+        elif value == "True":
+            tweet[key] = True
+        else:
+            tweet[key] = None
 
-session.commit()
-
-session.close()
+# Do nothing because we see conflicts of duplicate tweets due to
+# inserting same pkey multiple times.
+insert_stmt = insert(Tweet).values(tweets).on_conflict_do_nothing()
+with SessionLocal() as session:
+    session.execute(insert_stmt)
+    session.commit()
