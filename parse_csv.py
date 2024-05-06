@@ -1,5 +1,8 @@
 import csv
 
+from app.db.database import SessionLocal
+from app.db.models.tweets import Tweet
+
 file_path = "./screener_tweets.csv"
 
 
@@ -41,4 +44,11 @@ data_dict = {
     "zip",
 }
 
-result = read_csv(file_path, data_dict)
+tweets = read_csv(file_path, data_dict)
+session = SessionLocal()
+
+session.bulk_insert_mappings(Tweet, tweets)
+
+session.commit()
+
+session.close()
