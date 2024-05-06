@@ -20,7 +20,7 @@ data_filtering = APIRouter(
 )
 
 
-@data_filtering.post("/")
+@data_filtering.post("/twitter/")
 async def get_filtered_data(
     data_filtering_params: DataFilteringParams,
     page: int = Query(default=1, ge=1, description="Page number"),

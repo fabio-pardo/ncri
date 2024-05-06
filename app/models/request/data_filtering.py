@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 THREATENING = "threatening"
 NON_THREATENING = "non-threatening"
@@ -17,10 +17,13 @@ content_types = {
 
 
 class DataFilteringParams(BaseModel):
-    day: Optional[int] = None
-    month: Optional[int] = None
-    year: Optional[int] = None
-    content_type: str
+    day: Optional[int] = Field(None, description="day of the month")
+    month: Optional[int] = Field(None, description="month in numerical form")
+    year: Optional[int] = Field(None, description="year to use for data retrieval")
+    content_type: str = Field(
+        "",
+        description="Content type to retrieve. e.g. threatening, hateful, neutral",
+    )
 
     # NOTE: I can add more logic to disallow day > 31
     # or let's say 30 days in month 2 (Feb)
