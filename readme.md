@@ -5,6 +5,7 @@ Getting started:
 - Using the python version 3.8.18
 - I used something like the following: `mkvirtualenv -p ~/.pyenv/versions/3.8.18/bin/python3.8 ncri`
 - Run `docker-compose up --build`
+- Ensure that postgresql is running before running the following commands!
 - Run `alembic upgrade head`
 - Run `python parse_csv_and_store_tweets.py`
 - The PostgreSQL DB and the NCRI web service should be up and running now.

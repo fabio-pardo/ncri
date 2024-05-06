@@ -1,15 +1,80 @@
-from asyncpg.pool import Pool
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session
+from app.db.models.tweets import Tweet
 
-from app.models.request.data_filtering import DataFilteringParams
+from app.db.database import get_db
+from app.models.request.data_filtering import (
+    HATEFUL,
+    NEUTRAL,
+    NON_THREATENING,
+    THREATENING,
+    DataFilteringParams,
+)
 
 data_filtering = APIRouter(
     prefix="/data_filtering", responses={404: {"description": "Not found"}}
 )
 
 
-@data_filtering.get("/")
-async def root(
+@data_filtering.post("/")
+async def get_filtered_data(
     data_filtering_params: DataFilteringParams,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
 ):
-    return data_filtering_params
+    query = db.query(Tweet)
+    # Apply filters based on provided parameters
+    if data_filtering_params.day:
+        query = query.filter(Tweet.day == data_filtering_params.day)
+    if data_filtering_params.month:
+        query = query.filter(Tweet.month == data_filtering_params.month)
+    if data_filtering_params.year:
+        query = query.filter(Tweet.year == data_filtering_params.year)
+    if content_type := data_filtering_params.content_type_validated:
+        # NOTE: these filters could be moved out.
+        threatening_filter = or_(
+            Tweet.threat_level == "Medium",
+            Tweet.threat_level == "High",
+        )
+        non_threatening_filter = or_(
+            Tweet.threat_level == "Low",
+            Tweet.threat_level.is_(None),
+        )
+        hateful_filter = or_(
+            Tweet.hateful == "Medium",
+            Tweet.hateful == "High",
+        )
+        non_hateful_filter = or_(
+            Tweet.hateful == "Low",
+            Tweet.hateful.is_(None),
+        )
+        if content_type == THREATENING:
+            query = query.filter(threatening_filter)
+        elif content_type == NON_THREATENING:
+            query = query.filter(non_threatening_filter)
+        elif content_type == HATEFUL:
+            query = query.filter(hateful_filter)
+        elif content_type == NEUTRAL:
+            query.filter(
+                and_(
+                    non_threatening_filter,
+                    non_hateful_filter,
+                )
+            )
+
+    # Apply pagination
+    # NOTE: Including this here only for quickness.
+    # Because other routes will use this functionality,
+    # I'd move this elesewhere.
+    total_tweets = query.count()
+    query = query.offset((page - 1) * page_size).limit(page_size)
+
+    # Execute the query and return results
+    filtered_tweets = query.all()
+
+    return {
+        "tweets": filtered_tweets,
+        "total_tweets": total_tweets,
+    }
