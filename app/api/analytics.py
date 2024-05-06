@@ -1,12 +1,14 @@
-from typing import Optional
 from datetime import datetime, timedelta
+from functools import lru_cache
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-from app.limiter import limiter
 
 from app.db.database import get_db
 from app.db.models.tweets import Tweet
+from app.limiter import limiter
 from app.models.request.data_filtering import HATEFUL, THREATENING
 
 analytics = APIRouter(
@@ -19,6 +21,7 @@ analytics = APIRouter(
 
 @analytics.get("/twitter/users/stats")
 @limiter.limit("5/minute")
+@lru_cache(maxsize=None)
 async def get_key_user_stats(
     request: Request,
     page: int = Query(default=1, ge=1, description="Page number"),
@@ -60,6 +63,7 @@ async def get_key_user_stats(
 
 @analytics.get("/twitter/stats")
 @limiter.limit("5/minute")
+@lru_cache(maxsize=None)
 async def get_specific_tweet_stats(
     request: Request,
     start_date: Optional[datetime] = Query(default=None, description="Start date"),

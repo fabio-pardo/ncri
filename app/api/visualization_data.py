@@ -1,7 +1,7 @@
 from datetime import datetime
+from functools import lru_cache
 from typing import Optional
 
-from app.limiter import limiter
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func
 from sqlalchemy.exc import InvalidRequestError
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models.tweets import Tweet
+from app.limiter import limiter
 
 visualization_data = APIRouter(
     prefix="/visualization_data",
@@ -20,6 +21,7 @@ visualization_data = APIRouter(
 
 @visualization_data.get("/twitter/trends")
 @limiter.limit("5/minute")
+@lru_cache(maxsize=None)
 def get_tweet_trends(
     request: Request,
     metric: str = Query(..., description="The metric to analyze (e.g., author)"),
@@ -86,6 +88,7 @@ def get_tweet_trends(
 
 @visualization_data.get("/twitter/distribution")
 @limiter.limit("5/minute")
+@lru_cache(maxsize=None)
 def get_tweet_distribution(
     request: Request,
     metric: str = Query(
@@ -152,6 +155,7 @@ def get_tweet_distribution(
 
 @visualization_data.get("/twitter/heatmap")
 @limiter.limit("5/minute")
+@lru_cache(maxsize=None)
 def get_tweet_heatmap(
     request: Request,
     start_date: datetime = Query(..., description="Start date of the date range"),
