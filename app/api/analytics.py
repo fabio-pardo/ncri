@@ -22,7 +22,17 @@ async def get_key_user_stats(
     page_size: int = Query(default=10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
 ):
-    """Returns all users and the count of their tweets in descending order."""
+    """
+    Description: This endpoint retrieves statistics about key users in the Twitter dataset, including the count of tweets posted by each user. The results are sorted in descending order based on the tweet count.
+
+    Parameters:
+    - page: Page number for pagination.
+    - page_size: Number of key users to include per page. Must be between 1 and 100, inclusive.
+
+    Response:
+    - total_count: Total count of key users in the dataset.
+    - items: A list containing information about key users, including their username (author) and the count of tweets posted by each user.
+    """
     # Calculate offset based on page number and page size
     offset = (page - 1) * page_size
 
@@ -55,10 +65,19 @@ async def get_specific_tweet_stats(
     db: Session = Depends(get_db),
 ):
     """
-    Retrieve twitter data based on set time interval.
-    Default time interval is set to the past week.
-    One may also pass in the criteria they want to search on.
-    Criteria may be `threatening`, `hateful` or `None`
+    Description: This endpoint retrieves specific Twitter statistics based on the set time interval and optional criteria. By default, it returns statistics for the past week, but users can specify custom start and end dates to retrieve data for any time range. Additionally, users can filter the data based on specific criteria such as threatening or hateful tweets.
+
+    Parameters:
+    - start_date (optional): Start date of the time interval. If not provided, the default is set to one week before the end date.
+    - end_date (optional): End date of the time interval. If not provided, the default is set to the current date.
+    - page: Page number for pagination. Defaults to 1.
+    - page_size: Number of results per page. Must be between 1 and 100. Defaults to 10.
+    - criteria (optional): Criteria for filtering tweets. Can be 'threatening', 'hateful', or None.
+
+    Example Date Format: "2023-09-05 14:04:15"
+
+    Response:
+    - A list of dictionaries containing the date and tweet count for each day within the specified time interval.
     """
     # Default end date is today
     if not end_date:

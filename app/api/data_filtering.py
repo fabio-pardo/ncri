@@ -28,10 +28,18 @@ async def get_filtered_data(
     db: Session = Depends(get_db),
 ):
     """
-    Retrieve filtered data based on day/month/year and also content_type.
-    User may pass in the following content_type for retrieval: `threatening`, `non-threatening`, `neutral`, or `hateful`.
-    User MUST pass in a content_type.
+    Description: This endpoint retrieves filtered data from the Twitter dataset based on the provided filtering parameters. Users can filter the data based on day, month, and year, as well as the content type of the tweets, including threatening, non-threatening, neutral, or hateful content.
+
+    Parameters:
+    - data_filtering_params: Object containing filtering parameters including day, month, year, and content_type_validated.
+    - page: Page number for pagination.
+    - page_size: Number of results per page. Must be between 1 and 100, inclusive.
+
+    Response:
+    - tweets: Filtered tweets based on the provided parameters.
+    - total_tweets: Total count of tweets matching the filtering criteria.
     """
+
     query = db.query(Tweet)
     # Apply filters based on provided parameters
     if data_filtering_params.day:
