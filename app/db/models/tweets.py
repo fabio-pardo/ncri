@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from db.database import Base
+from app.db.database import Base
 
 
 class Tweet(Base):
@@ -29,4 +29,4 @@ class Tweet(Base):
     year = Column(Integer, index=True)
     year_month = Column(String, index=True)
     year_month_day = Column(String, index=True)
-    zip = Column(Integer, Index=True)
+    zip = Column(Integer, index=True)
