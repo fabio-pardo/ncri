@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
+from app.limiter import limiter
 from app.db.database import get_db
 from app.db.models.tweets import Tweet
 from app.models.request.data_filtering import (
@@ -21,7 +22,9 @@ data_filtering = APIRouter(
 
 
 @data_filtering.post("/twitter/")
+@limiter.limit("5/minute")
 async def get_filtered_data(
+    request: Request,
     data_filtering_params: DataFilteringParams,
     page: int = Query(default=1, ge=1, description="Page number"),
     page_size: int = Query(default=10, ge=1, le=100, description="Page size"),

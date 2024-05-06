@@ -1,8 +1,9 @@
 from typing import Optional
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
+from app.limiter import limiter
 
 from app.db.database import get_db
 from app.db.models.tweets import Tweet
@@ -17,7 +18,9 @@ analytics = APIRouter(
 
 
 @analytics.get("/twitter/users/stats")
+@limiter.limit("5/minute")
 async def get_key_user_stats(
+    request: Request,
     page: int = Query(default=1, ge=1, description="Page number"),
     page_size: int = Query(default=10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
@@ -56,7 +59,9 @@ async def get_key_user_stats(
 
 
 @analytics.get("/twitter/stats")
+@limiter.limit("5/minute")
 async def get_specific_tweet_stats(
+    request: Request,
     start_date: Optional[datetime] = Query(default=None, description="Start date"),
     end_date: Optional[datetime] = Query(default=None, description="End date"),
     page: int = Query(default=1, ge=1, description="Page number"),
