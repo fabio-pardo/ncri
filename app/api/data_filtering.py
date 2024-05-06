@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
-from app.db.models.tweets import Tweet
 
 from app.db.database import get_db
+from app.db.models.tweets import Tweet
 from app.models.request.data_filtering import (
     HATEFUL,
     NEUTRAL,
@@ -13,15 +13,18 @@ from app.models.request.data_filtering import (
 )
 
 data_filtering = APIRouter(
-    prefix="/data_filtering", responses={404: {"description": "Not found"}}
+    prefix="/data_filtering",
+    responses={
+        404: {"description": "Not found"},
+    },
 )
 
 
 @data_filtering.post("/")
 async def get_filtered_data(
     data_filtering_params: DataFilteringParams,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(10, ge=1, le=100),
+    page: int = Query(default=1, ge=1, description="Page number"),
+    page_size: int = Query(default=10, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
 ):
     query = db.query(Tweet)
@@ -63,6 +66,8 @@ async def get_filtered_data(
                     non_hateful_filter,
                 )
             )
+        else:
+            raise NotImplementedError
 
     # Apply pagination
     # NOTE: Including this here only for quickness.
